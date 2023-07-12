@@ -1,0 +1,49 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage{/usr/lib64/R/share/texmf/Rd}
+\usepackage{/usr/lib64/R/share/texmf/Sweave}
+\usepackage{/usr/lib64/R/share/texmf/upquote}
+
+% === graphic packages ===
+\usepackage{epsf,graphicx,psfrag}
+% === bibliography package ===
+\usepackage{natbib}
+% === margin and formatting ===
+\usepackage{setspace}
+\usepackage{fullpage}
+\usepackage{caption}
+% === math packages ===
+\usepackage[reqno]{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb,enumerate}
+\newtheorem{Com} {Comment}
+\newtheorem{prop}{Proposition}
+\newtheorem{thm}{Theorem}
+% === dcolumn package ===
+\usepackage{dcolumn}
+\newcolumntype{.}{D{.}{.}{-1}}
+\newcolumntype{d}[1]{D{.}{.}{#1}}
+% === additional packages ===
+\usepackage{url}
+\newcommand{\makebrace}[1]{\left\{#1 \right \} }
+\newcommand{\determinant}[1]{\left | #1 \right | }
+\newcommand{\ind}{1\hspace{-2.8mm}{1}}
+\title{Galileo: Cluster Analysis Algorithms}
+\author{Justin Grimmer \and Gary King}
+% rbuild: replace 'Version ' '\\' Version
+\date{Version \\ \today}
+\begin{document}\maketitle
+
+
+
+\include{Rd/affinity}
+\include{Rd/galileo}
+\include{Rd/mutinf}
+\include{Rd/clustTable}
+
+\subsection*{Contributors} Justin Grimmer and Gary King implemented
+{\tt clustTable}.
+
+\bibliographystyle{apsr} 
+\bibsep=0in 
+\bibliography{gk.bib,gkpubs.bib}
+\end{document}

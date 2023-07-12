@@ -1,0 +1,53 @@
+#!/bin/sh
+
+##
+# Convert Rd files to latex and make them available for inclusion in 
+# some other tex file (e.g. package manual)
+# 
+# Usage:  If you have an Rd file called "xxx.Rd" then in your manual use
+# /include{xxx}
+#
+# When in dought, ask Ferdi (falimadhi@iq.harvard.edu) 
+#
+# 
+
+
+
+
+# create a directory where latex files will take place
+
+if [ ! -d Rd ]
+then
+    mkdir Rd
+    cp /usr/lib64/R/share/texmf/Rd.sty Rd
+    cp /usr/lib64/R/share/texmf/upquote.sty Rd
+    cp /usr/lib64/R/share/texmf/upquote.sty .
+fi
+
+
+Rdfiles=`ls ../../man/*.Rd`
+for rd in ${Rdfiles}
+  do
+    newname=`basename ${rd} .Rd`
+    R CMD Rdconv -t=latex ${rd} -o Rd/${newname}.tex
+  
+    ### basically replace "HeaderA" with "section*" 
+    perl -i -pe 's#HeaderA{(.*)}{(.*)}{(.*)}#section*{{\\tt \1}: \2}\\label{ss:\3}#i' Rd/${newname}.tex 
+
+done
+
+
+echo "Sweave(\"galileo.Rnw\")" | R --slave
+
+#create the manual
+pdflatex galileo
+bibtex galileo
+pdflatex galileo
+pdflatex galileo
+pdflatex galileo
+
+## cleanup
+rm -f *.aux *.toc *.log *.out *.blg *.bbl
+rm -f galileo.tex
+
+rm -rf Rd

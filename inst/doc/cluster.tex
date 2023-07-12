@@ -1,0 +1,288 @@
+\documentclass[12pt,letterpaper]{article}
+% === graphic packages ===
+\usepackage{epsf,graphicx,psfrag}
+% === bibliography package ===
+\usepackage{natbib}
+% === margin and formatting ===
+\usepackage{setspace}
+\usepackage{fullpage}
+\usepackage{caption}
+% === math packages ===
+\usepackage[reqno]{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb,enumerate}
+\newtheorem{Com} {Comment}
+\newtheorem{prop}{Proposition}
+\newtheorem{thm}{Theorem}
+% === dcolumn package ===
+\usepackage{dcolumn}
+\newcolumntype{.}{D{.}{.}{-1}}
+\newcolumntype{d}[1]{D{.}{.}{#1}}
+% === additional packages ===
+\usepackage{url}
+\newcommand{\makebrace}[1]{\left\{#1 \right \} }
+\newcommand{\determinant}[1]{\left | #1 \right | }
+\newcommand{\ind}{1\hspace{-2.8mm}{1}}
+\begin{document}
+
+
+\section*{{\tt affinity} : Compute Similarity Between Documents}
+\label{affinity} {\tt affinity} provides a matrix of affinities
+between documents.  To improve the topics detected in the data, {\tt
+affinity} allows users to discard unimportant words, remove stop
+words, and compute a set of weights to identify important words. The
+output from {\tt affinity} is provided to {\tt galileo} to uncover
+topics.
+\subsection*{Syntax}
+\begin{verbatim}
+aff.mat<- affinity(undergrad, tfidf=T, type='cosine', stop=T,
+extra=F, extra.dat=NULL)
+\end{verbatim}
+\subsection*{Inputs}
+\begin{itemize}
+\item{{\tt undergrad}} An object from {\tt undergrad}, counting the
+occurrences of stems in each document.
+\item{{\tt tf-idf=T}} if true, tf-idf weights are used to calculate
+the affinity between documents.
+\item{{\tt type='cosine'}} Selects the measure of affinity between
+documents.  Currently, only the cosine is implemented, but future
+methods include euclidean (normal distribution), correlation, and
+absolute deviation.
+\item{{\tt stop=T}} if true, removes stop words from each document's
+representation when calculating the affinity between documents.
+\item{{\tt extra=T}} if true, there is an additional set of words to
+be removed from each document's representation before calculating
+the affinity between documents
+\item{{\tt extra.dat}} if {\tt extra=T} then the additional words
+(in a data frame) must be supplied to {\tt extra.dat}.
+\end{itemize}
+
+\subsection*{Details}
+{\tt affinity} creates a matrix that measures the similarities
+between a set of documents, which is supplied to {\tt galileo} to
+group documents with similar topics.  Using the {\tt stop}, {\tt
+tf-idf}, {\tt extra.dat} options allows the user to supply
+information to help increase the likelihood {\tt galileo} will
+uncover meaningful topics from the data.
+
+
+\subsection*{Examples}
+\begin{verbatim}
+##gt is an object from undergrad
+
+library(Galileo)
+
+data(SenPress)
+
+data(CommWords)
+
+output<- affinity(gt, stop=T, tfidf=T, extra=T,
+extra.dat=comm.words)
+
+\end{verbatim}
+
+\subsection*{Output Values}
+if there are $k$ documents to be analyzed, {\tt affinity} returns a
+$k \times k$ matrix of similarities between documents.
+
+
+\subsection*{Contributors}
+CONTRIBUTORS HERE.
+
+
+\clearpage
+
+
+\section*{{\tt galileo} : Methods for Topic Detection in Texts}
+\label{galileo} The {\tt galileo} command provides a variety methods
+for topic-detection in texts.  {\tt galileo} takes as an input a
+matrix of affinities between documents and returns a vector of
+cluster assignments between documents, which groups documents
+together based upon the topic of the text.  This classification can
+be used by {\tt mutinf} to label the clusters.
+\subsection*{Syntax}
+\begin{verbatim}
+clust <- galileo(affinity, method=c('Affinity', 'Spectral'), p=NULL
+, lambda=0.6, maxits=500, convits=50, num=NULL)
+\end{verbatim}
+\subsection*{Inputs}
+\begin{itemize}
+\item{{\tt affinity}} output from {\tt affinity} a matrix of
+affinities (similarities) between a set of documents.
+\item{{\tt method= c('Affinity', 'Spectral')}} selects the method of
+text-clustering for topic detection.  {\tt Affinity} results in
+text-clustering by approximate mixture of von-Mises distribution,
+with estimation by Dueck and Frey's (2007) affinity propagation.
+{\tt Spectral} computes the clusters using the two step clustering
+procedure developed in Ng, Jordan, and Weiss (2002).
+\item{{\tt p=NULL}} If {\tt Affinity} is selected, {\tt p} sets the
+prior that each document forms a cluster center and therefore is a
+prior on the number of topics.  Specifically, $p = \log
+\text{Pr}(\text{doc}_i = \text{center}) + 1$, or the log probability
+an arbitrarily chosen document is a cluster center.
+\item{{\tt lambda=0.6}} Dampening coefficient for method {\tt
+affinity}, must be between $(0.5,1)$.
+\item{{\tt maxits=500}} is the maximum number of iterations for
+affinity propagation to carry out before ceasing
+\item{{\tt convits=50}} is the number of iterations necessary to
+establish convergence.
+\item{{\tt num}} sets the number of topics if {\tt Spectral} method
+is selected
+\end{itemize}
+
+\subsection*{Details} {\tt galileo} implements two different topic
+detection methods. The first, {\tt Affinity} estimates an
+approximate mixture of von Mises-Fisher distributions using Dueck
+and Frey's (2007) Affinity Propagation algorithm.  DISCUSSION of THE
+APPROXIMATE MIXTURE OF VMF DISTRIBUTIONS.  Affinity propagation is a
+special case of 'loopy belief-propagation'--an approximate
+maximization approach for NP-Hard problems. The second method {\tt
+Spectral} implements the spectral clustering method of Ng, Jordan,
+and Weiss (2002). Spectral clustering methods have recently been
+developed in Computer Science and provide a quick approach to
+document clustering that have been shown to be competitive with
+mixture modeling approaches.
+
+\subsection*{Examples}
+\begin{verbatim}
+##output is an object from the affinity function
+
+##Example code for Affinity propagation
+
+cluster<- galileo(log(output), p = median(log(output))- 10,
+lambda=0.6, method='Affinity')
+
+##Example code for Spectral Clustering
+
+cluster<- galileo(output, num=30, method='Spectral')
+
+\end{verbatim}
+
+\subsection*{Output Values} {\tt galileo} returns a vector of cluster
+labels for each document.
+
+
+\subsection*{Contributors} CONTRIBUTORS HERE.
+
+
+\clearpage
+
+\section*{{\tt mutinf} : Compute Cluster Labels using Mutual Information}
+\label{mutinf} {\tt mutinf} determines a set of cluster labels using
+output from {\tt galileo}.  Specifically, {\tt mutinf} computes the
+information each stem $w$ provides for correct classification of
+documents in topics.  The output from {\tt mutinf} and {\tt galileo}
+can be passed to {\tt clustTable} to produce a \LaTeX ready table.
+
+\subsection*{Syntax}
+\begin{verbatim}
+muts<- mutinf(cluster, undergrad, stop=T, extra=F, extra.dat=NULL)
+\end{verbatim}
+\subsection*{Inputs}
+\begin{itemize}
+\item{{\tt cluster}} is an object from {\tt galileo} containing the cluster
+assignments for a set of documents.
+\item{{\tt undergrad}} is an object from undergrad containing the representation
+of each document.
+\item{{\tt stop=T}} if true, removes stop words from each document's
+representation when calculating the affinity between documents.
+\item{{\tt extra=F}} if true, there is an additional set of words to
+be removed from each document's representation before calculating
+the affinity between documents
+\item{{\tt extra.dat}} if {\tt extra=T} then the additional words
+(in a data frame) must be supplied to {\tt extra.dat}.
+\end{itemize}
+
+\subsection*{Details} {\tt mutinf} produces a set of labels for
+clusters of documents, regardless of the method used to compute the
+cluster assignments. The mutual information measures how well a stem
+$w$ predicts whether a document is assigned to a topic $k$.  The
+mutual information will reach its maximum if a stem is only found in
+documents that assigned to topic $k$ and reaches its minimum if the
+stem does not help discriminate between the documents assigned to a
+category and the documents not assigned to the category.
+
+
+
+\subsection*{Examples}
+\begin{verbatim}
+##gt is an object from undergrad
+
+library(Galileo)
+
+data(SenPress)
+
+data(CommWords)
+
+output<- affinity(gt, stop=T, tfidf=T, extra=T,
+extra.dat=comm.words)
+
+cluster<- galileo(log(output), p = median(log(output))- 10,
+lambda=0.6, method='Affinity')
+
+muts<- mutinf(cluster, gt, extra=T, extra.dat=comm.words)
+
+
+\end{verbatim}
+
+\subsection*{Output Values} If there are $k$ topics and $W$ stems,
+produces a $k \times W$ matrix, describing the mutual information of
+each stem, for each topic.
+
+\subsection*{Contributors} CONTRIBUTORS HERE.
+
+\clearpage
+
+\section*{{\tt clustTable} : Table for Displaying Cluster Output}
+\label{clustTable} {\tt clustTable} takes the output from {\tt
+galileo} and {\tt mutinf} and produces a \LaTeX ready table.
+
+\subsection*{Syntax}
+\begin{verbatim}
+clustTable(cluster, mut.inf, num=5)
+\end{verbatim}
+\subsection*{Inputs}
+\begin{itemize}
+\item{{\tt cluster}} is an object from {\tt galileo} containing the cluster
+assignments for a set of documents.
+\item{{\tt mut.inf}} is an object from {\tt mutinf} describing the mutual information for each
+word and for each cluster.
+\item{{\tt num}} describes the number of stems used to describe each
+topic.
+\end{itemize}
+
+\subsection*{Details} {\tt clustTable} orders the clusters from
+largest to smallest. Then, each cluster is labeled according to the
+{\tt num} stems with the largest mutual information for a given
+cluster.
+
+
+
+\subsection*{Examples}
+\begin{verbatim}
+##gt is an object from undergrad
+
+library(Galileo)
+
+data(SenPress)
+
+data(CommWords)
+
+output<- affinity(gt, stop=T, tfidf=T, extra=T,
+extra.dat=comm.words)
+
+cluster<- galileo(log(output), p = median(log(output))- 10,
+lambda=0.6, method='Affinity')
+
+muts<- mutinf(cluster, gt, extra=T, extra.dat=comm.words)
+
+clustTable(cluster, muts, num=5)
+
+\end{verbatim}
+
+\subsection*{Output Values} A \LaTeX ready table
+
+\subsection*{Contributors} Justin Grimmer and Gary King implemented
+{\tt clustTable}.
+
+\end{document}

@@ -1,0 +1,898 @@
+\documentclass[11pt,letterpaper]{article}
+% === graphic packages ===
+\usepackage{epsf,graphicx,psfrag}
+% === bibliography package ===
+\usepackage{natbib}
+% === margin and formatting ===
+\usepackage{setspace}
+%\usepackage{palatino}[1]
+%\usepackage[T1]{fontenc}
+%\usepackage{palatino}
+%\renewcommand{\familydefault}{cmss}
+%\usepackage{cmbright}
+%\usepackage[T1]{fontenc}
+%\usepackage{arev}
+%\usepackage[LGR,T1]{fontenc} %% LGR encoding is needed for loading the package gfsneohellenic
+%\usepackage[default]{gfsneohellenic}
+%\usepackage{pslatex}
+\usepackage{fullpage}
+\usepackage{color}
+% === math packages ===
+\usepackage[reqno]{amsmath}
+%\usepackage[pdftex]{hyperref}
+\usepackage{amsthm}
+\usepackage{amssymb,enumerate}
+\usepackage[all]{xy}
+\usepackage{lscape}
+ \numberwithin{equation}{section}
+% === dcolumn package ===
+\usepackage{dcolumn}
+\newcolumntype{.}{D{.}{.}{-1}}
+\newcolumntype{d}[1]{D{.}{.}{#1}}
+% === additional packages ===
+\usepackage{url}
+\title{Similarity and Cluster Methods Included in Galileo}
+\author{Justin Grimmer and Gary King}
+\begin{document}
+\maketitle
+\bibliographystyle{apsr}
+
+\tableofcontents
+\bigskip
+
+We suppose throughout that we observe $N$ documents $(i=1, \hdots,
+N)$.  Suppose that document $\boldsymbol{y}_i$ is a $w \times 1$
+count vector, where the $j^{\text{th}}$ element of the vector counts
+the number of occurrences of the $j^{\text{th}}$ word.  Collect the
+documents into the $N \times 1$ matrix $\boldsymbol{Y}$.
+
+\section{Similarity and Dissimilarity Methods}
+Crucial to the clustering objective is the definition of similarity
+between documents.  Some methods allow for an arbitrary distance
+metric to be used between the documents, while others (mainly
+statistical models) operate on an implied distance metric.  We
+outline some of the most important metrics here.  \\
+\indent Abstractly, a dissimilarity metric is a mapping from
+$\mathcal{D}: Y \times Y \rightarrow \Re_+$.  We will denote the
+dissimilarity metric $\text{M}$ evaluated at $\boldsymbol{y}_i$ and
+$\boldsymbol{y}_j$ as $\mathcal{D}_{\text{M}} (\boldsymbol{y}_i,
+\boldsymbol{y}_j).$
+\subsection{Unnormalized Metrics}
+
+
+\subsubsection{Manhattan} The Manhattan metric between
+$\boldsymbol{y}_i$ and $\boldsymbol{y}_j$ is given by
+\begin{eqnarray}
+\mathcal{D}_{\text{Manhattan}}(\boldsymbol{y}_i,\boldsymbol{y}_j ) &
+= & \sum_{k=1}^{w} |y_{i,k} - y_{j,k}  |. \nonumber
+\end{eqnarray}
+\subsubsection{Euclidean}
+Perhaps the most widely used of dissimilarity metrics, the Euclidean
+distance metric  is given by
+\begin{eqnarray}
+\mathcal{D}_{\text{Euclidean}}(\boldsymbol{y}_i,\boldsymbol{y}_j ) &
+= & \sqrt{\sum_{k=1}^{w} (y_{i,k} - y_{j,k} )^{2} }. \nonumber
+\end{eqnarray}
+\subsubsection{Minkowski}
+The Minkowski metric generalizes the Manhattan and Euclidean metric.
+The core idea behind both the manhattan and euclidean metric is the
+that the deviation along each coordinate is raised to the
+$p^{\text{th}}$ power and then the $p^{\text{th}}$ root is taken of
+the sum.  In other words, we can specify the Minkowski($p$) metric
+as,
+\begin{eqnarray}
+\mathcal{D}_{\text{Minkowski}, p }(\boldsymbol{y}_i,\boldsymbol{y}_j
+) & = & \left( \sum_{k=1}^{w} \left[y_{i,k} - y_{j,k} \right]^{p}
+\right)^{1/p} \nonumber
+\end{eqnarray}
+\subsubsection{Maximum}
+The maximum metric (or \emph{sup-norm}) is an extension of the
+Minkowski metric.  If we allow $p \rightarrow \infty$ then,
+\begin{eqnarray}
+\mathcal{D}_{\text{maximum}}(\boldsymbol{y}_i,\boldsymbol{y}_j ) & =
+& \max \left\{|y_{j,1} - y_{k,1} |, \hdots, |y_{j,w} - y_{k,w} |
+\right\} \nonumber
+\end{eqnarray}
+\subsection{Normalized Metrics}
+A problem with the previous methods is that they are
+\emph{unbounded} or do not normalize the length of documents.  We
+now introduce a class of metrics that attempt to remove the
+influence of document length in the determination of dissimilarity.
+\subsubsection{Canberra}
+Define the index set for two documents $i$ and $j$
+$\mathcal{Z}_{i,j}  \equiv \{k \in W | y_{i,k} > 0 \text{ or }
+y_{j,k} > 0 \}.$  Then, we can define the canberra metric as
+\begin{eqnarray}
+\mathcal{D}_{\text{canberra}}(\boldsymbol{y}_i,\boldsymbol{y}_j ) &
+= & \sum_{k \in \mathcal{Z}} \frac{|y_{i,k} - y_{j,k} | }{|y_{i,k} +
+y_{j,k}  | } \nonumber
+\end{eqnarray}
+
+\subsubsection{Cosine/(Not Centered Pearson)}
+The cosine (or not centered pearson) is a \emph{similarity} metric
+between two documents. Define the \emph{length} of document $i$ as
+$\text{Len}_i  =  \sqrt{\boldsymbol{y}_i^{'} \boldsymbol{y}_i^{'}
+}.$  Then the cosine of the angle between two documents $i$ and $j$
+is
+\begin{eqnarray}
+\cos (\boldsymbol{y}_i, \boldsymbol{y}_j) & = &
+\frac{\boldsymbol{y}_i ^{'} \boldsymbol{y}_j }{\text{Len}_i
+\text{Len}_j} \nonumber
+\end{eqnarray}
+And because $\boldsymbol{y}_{i,k} \geq 0$ for all $i$ and $k$, we
+know that $\cos (\boldsymbol{y}_i, \boldsymbol{y}_j) \geq 0$.
+Therefore, we can define the distance metric as
+\begin{eqnarray}
+\mathcal{D}( \boldsymbol{y}_i , \boldsymbol{y}_j )_{\cos} & = & 1-
+\cos (\boldsymbol{y}_i, \boldsymbol{y}_j) \nonumber
+\end{eqnarray}
+\subsubsection{Correlation/(Centered Pearson) }
+Similar to the cosine metric is the correlation metric.  Define
+$\text{Var}(\boldsymbol{y}_i)  = \frac{1}{N-1}\sum_{k=1}^{w}
+(y_{i,k}^2 - \bar{y}_{i} )^2 $.  Then, it is well known that
+\begin{eqnarray}
+\text{cor}(\boldsymbol{y}_i, \boldsymbol{y}_j) & = &
+\frac{\sum_{k=1}^{w} (y_{i,k} - \bar{y}_i )(y_{j,k} - \bar{y}_j)}{
+\sqrt{\text{Var}(\boldsymbol{y}_i) \text{Var}(\boldsymbol{y}_j) }}
+\nonumber
+\end{eqnarray}
+
+Then we can define the associated distance metric as,
+\begin{eqnarray}
+\mathcal{D}_{\text{correlation}}(\boldsymbol{y}_i, \boldsymbol{y}_j)
+& = & 1 - \text{cor}(\boldsymbol{y}_i, \boldsymbol{y}_j)  \nonumber
+\end{eqnarray}
+
+\subsubsection{Binary}
+Recall from above that $\mathcal{Z}_{i,j}  \equiv \{k \in W |
+y_{i,k} > 0 \text{ or } y_{j,k} > 0 \}.$.  Define $\mathcal{F}_{i,j}
+\subset \mathcal{Z}_{i,j}$ as $ \mathcal{F}_{i,j} \equiv \{ k \in
+\mathcal{Z}_{i,j} | y_{i,k} > 0 \text{ and } y_{j,k} = 0 | y_{i,k}
+=0  \text{ and } y_{j,k} > 0 \}.$  Then we can define the distance
+metric as
+\begin{eqnarray}
+\mathcal{D}_{\text{Binary} }(\boldsymbol{y}_i, \boldsymbol{y}_j) & =
+& \frac{|\mathcal{F}|}{|\mathcal{Z}|} \nonumber
+\end{eqnarray}
+
+In words, the Binary metric first determines the coordinates where
+either document $i$ or document $j$ have a word.  Then, among those
+words, we count the coordinates where \emph{only one document has a
+positive entry} or those words that appear in only one document. The
+ratio of these two sets defines a distance metric.
+\subsection{Ranking Methods}
+\subsubsection{Spearman's Ranked Test}
+\textbf{Note, the implementation of this in AMAP must be wrong} \\
+Consider two vectors $\boldsymbol{y}_i$ and $\boldsymbol{y}_j$.
+First, convert each data vector into a vector of ranks.  That is,
+the biggest value in each vector is assigned the largest rank (the
+length of the vector $\boldsymbol{y}_i$), the second largest value
+in the vector will be assigned the second largest rank, and so on.
+Call this new vector $\tilde{\boldsymbol{y}}_i$ and
+$\tilde{\boldsymbol{y}}_j$.  Then, we can define the
+\textbf{Spearman Ranked Correlation} as,
+\begin{eqnarray}
+\textbf{Spearman Ranked Correlation}(\boldsymbol{y}_i,
+\boldsymbol{y}_j) & = & \text{cor}(\tilde{\boldsymbol{y}}_i,
+\tilde{\boldsymbol{y}}_j ), \nonumber
+\end{eqnarray}
+or the spearman ranked correlation is just the spearman-centered
+correlation between the vector of ranks.  Then, we can define the
+appropriate distance as
+\begin{eqnarray}
+\mathcal{D}_{\text{Spearman Ranked Correlation}}(\boldsymbol{y}_i,
+\boldsymbol{y}_j)  & = &  1 - \textbf{Spearman Ranked
+Correlation}(\boldsymbol{y}_i, \boldsymbol{y}_j) \nonumber
+\end{eqnarray}
+\subsubsection{Kendall}
+Need to fill in this section.  the formula is
+\begin{eqnarray}
+\frac{c - d }{\frac{n(n-1)}{2}} \nonumber
+\end{eqnarray}
+where $c$ is \emph{concordant} and $d$ is \emph{discordant} pairs.
+The problem is that I can't find a good definition of those
+quantities.  Once again, we'll take 1 - Kendall tau.  Compute using
+{\tt cor.test(data[1,], data[2,], method='kendall') } in {\tt R}.
+\subsection{Other Measures of Dissimilarity}
+\subsubsection{Random Forest Distance}
+The random forest metric is a method based on the use of random
+forest technique but for unsupervised learning.  In the unsupervised
+case, we take the original data set $\boldsymbol{Y}$, and then
+sample an artificial data set from the columns of $\boldsymbol{Y}$.
+The original data set is labeled class $1$ and the synthetic data
+set is class $2$.  Random forest learning is now applied to this
+(now labeled) data set.  The distance metric is then created by
+observing how many times two observations are ``voted" into the same
+classification. So, if denote the iterations of the random forest by
+$t$, $(t = 1, \hdots, T)$ and $v_{i,j}^{t}$ is an indicator for $i$
+and $j$ voted in the same class we have,
+\begin{eqnarray}
+\mathcal{D}(\boldsymbol{y}_i, \boldsymbol{y}_j) & = &
+ 1 - \sum_{t=1}^{T}\frac{v_{i,j}^{t}}{T}. \nonumber
+ \end{eqnarray}
+
+\subsubsection{Encoding Metrics (Asymmetric)}
+This is an asymmetric similarity metric that is suggested in Dueck
+and Frey's (2007) article on affinity propagation, and is based upon
+the information theoretic costs of encoding each document, using
+another document's vocabulary.  \\
+\indent Consider two documents $\boldsymbol{y}_k$ and
+$\boldsymbol{y}_j$.  Suppose that there are $n_k$ words in
+$\boldsymbol{y}_k$  and $n_j$ words in  $\boldsymbol{y}_j$.  If
+there are $N$ documents (indexed by $i = 1, \hdots, N$) then we say
+there is a total of $n = \sum_{i=1}^{N} n_i$ in all the documents.
+We can then define the encoding metric (em) similarity between
+$\boldsymbol{y}_k$ and $\boldsymbol{y}_j$ as,
+\begin{eqnarray}
+em(\boldsymbol{y}_k, \boldsymbol{y}_j) & = & - \log\left(n_j\right)
+ \times \text{No. words in $\boldsymbol{y}_j$ and
+$\boldsymbol{y}_k$} + - \log \left( n \right) \text{No. words in
+$\boldsymbol{y}_j$ not in $\boldsymbol{y}_k$}. \nonumber
+\end{eqnarray}
+Of course $em(\boldsymbol{y}_k, \boldsymbol{y}_j)$ is not
+necessarily equal to $em(\boldsymbol{y}_j, \boldsymbol{y}_k)$.  We
+can alter the similarity metric to a distance metric with a simple
+transformation,
+\begin{eqnarray}
+\mathcal{D}_{em}(\boldsymbol{y}_k, \boldsymbol{y}_j ) & = & \max_{i,
+m}em(\boldsymbol{y}_i, \boldsymbol{y}_m)  - em(\boldsymbol{y}_k,
+\boldsymbol{y}_j). \nonumber
+\end{eqnarray}
+\section{Clustering Methods}
+Using the similarity and dissimilarity metrics from the previous
+sections, we can define clustering methods.  The basic
+(optimization) objective of clustering is to group together
+documents with similar content and placing documents with different
+content in different clusters.  Obviously, the crucial element of
+the definition is ``different", which is why we use the similarity
+and dissimilarity metrics.  \\
+\indent But a second crucial element is identifying the optimal
+groupings.  The clustering objective is an NP-Hard problem, with the
+number of potential clusters growing quickly as the number of
+observations increase.  Therefore, the clustering methods must
+obtain an approximate method to quickly obtain a clustering of the
+documents. \\
+\indent Throughout, we will assume that our primary quantity of
+interest is the cluster membership of each document.  If we use a
+\emph{hard clustering} our quantity of interest is a set of cluster
+labels $\boldsymbol{c} = (c_1, \hdots, c_N)$, where $c_i$ denotes
+which of the $k$ clusters observation $i$ is assigned.
+Alternatively, we might allow \emph{soft-clustering} which allows
+documents to partially belong to each of the clusters.  In this case
+$\boldsymbol{c}_i$ is a $K \times 1$ vector, where $c_{k,1}$
+describes the posterior probability of document $i$ belonging to the
+$k^{\text{th}}$ category.
+\subsection{Exemplar Based Methods}
+Exemplar based methods are hard-clustering techniques.  To aid in
+dividing the data into clusters (equivalently obtaining the $N
+\times 1$ vector $\boldsymbol{c}$), we suppose that each cluster is
+characterized by a \emph{cluster-center} $\boldsymbol{\mu}_k$ which
+is a $w \times 1$ vector describing a prototype document for that
+cluster. Exemplar based methods restrict the cluster centers to the
+observed documents, or documents that are \emph{exemplars} for the
+clusters.  \\
+\indent Given this objective--identify clusters of documents and
+then documents that best define those clusters, we use two different
+optimization appropriations, which take the similarity metric fixed:
+kmediods and affinity propagation.
+\subsubsection{Kmedoids}
+Kmedoids is a greedy-optimization algorithm for exemplar based
+clustering.  First, we fix a similarity metric: denote the
+similarity between document $j$ and document $k$ as $s_{j,k}$. Then,
+we initialize a set of $K$ documents as cluster centers
+$\boldsymbol{\mu}_1, \hdots, \boldsymbol{\mu}_K$.  In the first step
+of the algorithm, we compute the cluster that best fits each
+document.  For document $i$ define the similarity with the
+$k^{\text{th}}$ cluster center as $s_{i,k}$.  Then we can define the
+first step as
+\begin{eqnarray}
+c_i & = & {\tt arg max }_k  s_{i,k} \nonumber
+\end{eqnarray}
+Then, based upon this step we update the cluster centers by choosing
+the center that is at the ``center" of the cluster.  One way to
+define the cluster center is to select the document with the highest
+average similarity with the other documents in the cluster.
+Formally, define the set of documents assigned to the
+$k^{\text{th}}$ cluster as $d_k$.
+ Then the average proximity with the other clusters for document $i$
+ in cluster $k$ is $\bar{s}_{i,d_k}  =  \sum_{j \in d_k: j \neq i}
+ \frac{s_{i,j} }{ |d_k| }$.  Then, we can define $\boldsymbol{\mu}_k
+ = {\tt arg max}_{i \in d_k} \bar{s}_{i,d_k} $.  Table
+ \ref{kmedoids} describes the procedure in full.
+\begin{table}[hbt!]
+\caption{Kmedoids Algorithm} \label{kmedoids} \framebox[7in]{
+\begin{tabular}{l}
+Initialize a set of cluster centers $\boldsymbol{\mu}_1, \hdots,
+\boldsymbol{\mu}_K$  \\
+Do until convergence \\
+- \indent  for $i=1,\hdots,N$ $c_i  =  {\tt arg max }_k  s_{i,k}$ \\
+- \indent for $k=1, \hdots, K$ set $d_k = \{ i : c_i = k \}$.  \\
+- \indent for $i=1, \hdots, N$ and $k=1,\hdots, K$, compute
+$\bar{s}_{i, d_k} = \sum_{j \in d_k : j \neq i }\frac{s_{i,j}}{|d_k|
+}$ \\
+- \indent for $k = 1,\hdots, K$ set $\boldsymbol{\mu}_k = {\tt arg
+max}_{i \in d_k} \bar{s}_{i,d_k} $ \\
+Return cluster labels $\boldsymbol{c}= (c_1, \hdots, c_N)$.
+\end{tabular}}
+\end{table}
+\subsubsection{Affinity Propagation}
+Affinity propagation is a different optimization procedure for
+exemplar based clustering methods.  Rather than use a greedy
+optimization algorithm, affinity propagation uses the \emph{max-sum
+algorithm} on a \emph{factor-graph} to approximately consider all
+possible solutions at the same time.  Affinity propagation does not
+require an assumption about the number of clusters in the document,
+rather the user sets only a prior on the number of clusters.  \\
+\indent To outline the algorithm, we first fix a similarity metric
+from above $s$.  To set the number of clusters in the data set, we
+set the \emph{self-similarity} of each observation $s_{i,i}$ for all
+$i=1,\hdots, N$.  As $s_{i,i}$ increases, there will be more
+clusters in the data set.  Conversely, if $s_{i,i}$ is set lower,
+there will be fewer clusters.  While we do not directly set the number of clusters from affinity-propagation, the self-similarity
+exerts a strong influence on the number of clusters in the data.  \\
+\indent Affinity propagation is a \emph{message-passing} algorithm,
+where the messages will describe the \emph{responsibility} that an
+observation serves as an exemplar for other observations, and the
+\emph{availability} of an observation to serve as an exemplar.  To
+begin the algorithm, define the availability matrix as
+$\boldsymbol{A}$ as an $N \times N$ and set each element of
+$\boldsymbol{A}$ equal to zero: typical element $a_{i,j} = 0$ to
+start the algorithm.  Likewise the responsibility matrix,
+$\boldsymbol{R}$ is $N \times N$.  With the fixed values of the
+availability, define the responsibility $r_{i,k} $ as
+\begin{eqnarray}
+r_{i,k} & = & s_{i,k} - \max_{k^{'} \text{s.t.} k^{'} \neq k } \{
+a_{i,k^{'}} + s_{i,k^{'}} \} \nonumber
+\end{eqnarray}
+Given this updated value of the $\boldsymbol{R}$ matrix, we update
+the values of $\boldsymbol{A}$ matrix.  For document $i$, for all
+observations $j \neq i$, we define the updates as
+\begin{eqnarray}
+a_{i,j} & = & \min\left(0, r_{j,j} + \sum_{i^{'} \text{s.t.} i^{'}
+\notin \{i, k\}} \max \left(0, r_{i^{'}, k} \right) \right)
+\nonumber
+\end{eqnarray}
+and define the self-availabilities as
+\begin{eqnarray}
+a_{i,i} & = & \sum_{i^{'} \text{s.t.} i^{'} \neq i } \max\{0,
+r_{i^{'},i} \}  \nonumber
+\end{eqnarray}
+Dueck and Frey (2007) suggest \emph{dampening} the messages. Suppose
+that index the interactions by $t$.  Then, suppose that we place the
+updated messages into the matrix $\boldsymbol{R}^{\text{update}}$
+and $\boldsymbol{A}^{\text{update}}$ and the old messages (t-1) in
+$\boldsymbol{R}^{\text{old}}$ and $\boldsymbol{A}^{\text{old}}$. Set
+$\lambda$ as the dampening factor, then
+\begin{eqnarray}
+\boldsymbol{R}^{t} & = & \lambda \boldsymbol{R}^{\text{update }} +
+(1- \lambda ) \boldsymbol{R}^{\text{old }} \nonumber \\
+\boldsymbol{A}^{t} & = & \lambda \boldsymbol{A}^{\text{update }} +
+(1- \lambda ) \boldsymbol{A}^{\text{old }} \nonumber
+\end{eqnarray}
+
+To finish the algorithm, define the $i^{\text{th}}$ row of
+$\boldsymbol{A}$ as $\boldsymbol{a}_i$ and $\boldsymbol{R}$ as
+$\boldsymbol{r}_i$.  Then, define $c_i = {\tt arg max}_k
+(\boldsymbol{a}_i^{\text{new}} + \boldsymbol{r}_i^{\text{new}}) $.
+If $c_i = i$, then document $i$ is defined as an exemplar, or is
+assigned to the cluster around document $k$.  Table \ref{affinity}
+summarizes the algorithm.
+\begin{table}[hbt!]
+\caption{Affinity Propagation} \label{affinity} \framebox[7in]{
+\begin{tabular}{l}
+Initialize $\boldsymbol{A}^{\text{old}}$ to $\boldsymbol{0}$,
+$\boldsymbol{R}^{\text{old}}$, and $\lambda$.
+\\
+Set $s_{i,i}$ for $i = 1,\hdots, N$.  \\
+Do until convergence \\
+- \indent for $i,j = 1, \hdots, N$ set $r_{i,j}^{\text{update}} =
+s_{i,j} - \max_{k^{'} \text{s.t.} k^{'} \neq k } \{ a_{i,k^{'}} +
+s_{i,k^{'}}
+\}$ \\
+- \indent for $i,j = 1, \hdots, N$ set $a_{i,j}^{\text{update}} =
+\min\{0, r_{j,j} + \sum_{i^{'} \text{s.t.} i^{'} \notin \{i, k \}
+}\max(0, r_{i^{'}, k}
+)  \}$ \\
+- \indent for $i = 1, \hdots, N$ set $a_{i,i}^{\text{update}} =
+\sum_{i^{'}
+\text{s.t.} i^{'} \neq k} \max\{0, r_{i^{'}, k}  \} $.  \\
+- \indent set $\boldsymbol{R}^{\text{new}} = \lambda
+\boldsymbol{R}^{\text{update}} + (1- \lambda)
+\boldsymbol{R}^{\text{old}} $ and $\boldsymbol{A}^{\text{new}} =
+\lambda \boldsymbol{A}^{\text{update}} + (1- \lambda)
+\boldsymbol{A}^{\text{old}} $ \\
+- \indent for $i = 1, \hdots, N$ set $c_i = {\tt arg max}_{k}
+\left(\boldsymbol{a}_i^{\text{new}} + \boldsymbol{r}_i^{\text{new}} \right)$ \\
+Return cluster labels $\boldsymbol{c} = (c_1, \hdots, c_N)$.
+\end{tabular}}
+\end{table}
+
+\subsection{Kmeans}
+Kmeans is probably the most well-known of clustering methods and is
+the default clustering method for a variety of clustering tasks. The
+algorithm proceeds in two basic steps, which are similar to exemplar
+based methods.  The critical difference between kmeans and exemplar
+based methods is that the cluster centers are now free to take on
+any value, rather than just the documents.
+\subsubsection{Classic Kmeans}
+To state the algorithm, we fix a distance metric $\mathcal{D}_m$ and
+initialize a set of cluster centers $\boldsymbol{\mu}_{1},\hdots,
+\boldsymbol{\mu}_K$.  In the first step, we assign each document $i$
+to a cluster center,
+\begin{eqnarray}
+c_i & = & {\tt arg min}_k \mathcal{D}(\boldsymbol{y}_i,
+\boldsymbol{\mu}_k ) \nonumber
+\end{eqnarray}
+
+Conditional on the updated values of $\boldsymbol{c}$, we obtain
+updated cluster centers.  Call $d_k = \{i : c_i = k \}$.  Then, the
+updated cluster centers $\boldsymbol{\mu}_k$ is
+\begin{eqnarray}
+\boldsymbol{\mu}_k & = & \min_{\boldsymbol{\mu}_k \in \Re^{w} }
+\sum_{j \in d_k } \mathcal{D}_m (\boldsymbol{y}_j,
+\boldsymbol{\mu}_k ) \nonumber
+\end{eqnarray}
+with the specific value of $\boldsymbol{\mu}_k$ depending upon the
+distance metric assumed.  The specific form of this update equation
+will vary according to the distance metric, but the updates for
+Euclidean distance are particularly straightforward,
+\begin{eqnarray}
+\boldsymbol{\mu}^{\text{new}}_k & = & \sum_{j \in d_k}
+\frac{\boldsymbol{y}_j}{|d_k|} \nonumber
+\end{eqnarray}
+or the cluster centers are just the average of the data assigned to
+the cluster.  Table \ref{kmeans} summarizes the algorithm
+
+\begin{table}[hbt!]
+\caption{Kmeans algorithm} \label{kmeans} \framebox[7in]{
+\begin{tabular}{l}
+Initialize $\boldsymbol{\mu}_1,\hdots, \boldsymbol{\mu}_K$ and
+select $\mathcal{D}_m$ .  \\
+Do until convergence \\
+- \indent for $i =1, \hdots, N$ set $c_i = {\tt arg min}_k
+\mathcal{D}_m (\boldsymbol{y}_i, \boldsymbol{\mu}_k)$.  \\
+- \indent for $k =1, \hdots, K$ set $\boldsymbol{\mu}_k = {\tt arg
+min}_{\boldsymbol{\mu}_k \in \Re^{w}} \sum_{j \in d_k} \mathcal{D}_m
+(\boldsymbol{y}_j, \boldsymbol{\mu}_k) $ \\
+Return $c_1, \hdots, c_N$ and $\boldsymbol{\mu}_1, \hdots,
+\boldsymbol{\mu}_K$.
+\end{tabular}}
+\end{table}
+\subsubsection{Fuzzy (soft) Kmeans} \textbf{You need to add this
+method to the package (fuzzy you have
+is a little different)} \\
+
+A straightforward extension of the kmeans algorithm is the fuzzy
+kmeans algorithm. Rather than searching for \emph{hard} assignments
+to clusters, we allow the documents to be assigned partially to
+other clusters.\footnote{The fuzzy comes from the idea of
+\emph{fuzzy-set} membership, a generalization of set theory. }  \\
+\indent Like kmeans, fuzzy kmeans is an iterative algorithm that
+proceeds in two broad steps.  We fix a distance metric
+$\mathcal{D}_m$ and a desired number of clusters $K$ and initialize
+a set of cluster centers $\boldsymbol{\mu}_1, \hdots,
+\boldsymbol{\mu}_K$.  In the first step we assign documents to
+topics.  Now $\boldsymbol{c}_i$ is a $K \times 1$ vector, with
+typical element $c_{i,j}$ given by,
+\begin{eqnarray}
+c_{i,j} & = & \frac{\left( \mathcal{D}^2_m (\boldsymbol{y}_i,
+\boldsymbol{\mu}_j)\right)^{-\frac{1}{q-1}}}{\sum_{k=1}^{K}
+\left(\mathcal{D}^2_m (\boldsymbol{y}_i, \boldsymbol{\mu}_k)
+\right)^{-\frac{1}{q-1}} } \nonumber
+\end{eqnarray}
+where $q$ is a parameter that controls the \emph{fuzziness} of the
+clusters.\footnote{The asymptotic behavior of $q$ is a little
+complicated.  As $q \rightarrow - \infty$ or $q \rightarrow \infty$
+then the documents are evenly assigned to each document.  As $q
+\rightarrow 1$ from the left, the ratio behaves as the original
+kmeans.  As $q \rightarrow 1$ from the right, the ratio behaves like
+an inverted kmeans (assigning all weight to smallest document).}
+Then,conditional on this step, we recompute the cluster centers by
+calculating,
+\begin{eqnarray}
+\boldsymbol{\mu}_k & = & \frac{\sum_{i=1}{N} c_{i,k}^q
+\boldsymbol{y}_i }{\sum_{i=1}^{N} c^{q}_{i,k} } \nonumber
+\end{eqnarray}
+Table \ref{fuzzyk} describes the procedure in full.
+\begin{table}[hbt!]
+\caption{Fuzzy Kmeans algorithm}\label{fuzzyk} \framebox[7in]{
+\begin{tabular}{l}
+Fix a distance metric $\mathcal{D}_m$, desired number of clusters
+$K$ and fuzziness level $q$. \\
+Do until convergence \\
+ - For each $i=1, \hdots, N$ and $k=1,\hdots,
+K$, compute $ c_{i,j} = \frac{\left( \mathcal{D}^2_m
+(\boldsymbol{y}_i,
+\boldsymbol{\mu}_j)\right)^{-\frac{1}{q-1}}}{\sum_{k=1}^{K}
+\left(\mathcal{D}^2_m (\boldsymbol{y}_i, \boldsymbol{\mu}_k)
+\right)^{-\frac{1}{q-1}} } $ \\
+- For each $k=1,\hdots, K$ compute $ \boldsymbol{\mu}_k  =
+\frac{\sum_{i=1}{N} c_{i,k}^q \boldsymbol{y}_i }{\sum_{i=1}^{N}
+c_{i,k}^{q} } $ \\
+Return $N \times K$ matrix of cluster labels $\boldsymbol{c}$.
+\end{tabular}}
+\end{table}
+
+\subsubsection{Trimmed Kmeans}
+{\tt This is a little hard to piece together from the paper.  The
+basic idea is that this can robustify kmeans by trimming some of the
+points that may be outliers}
+
+\subsection{Maximum Entropy Clustering (MEC)}
+Maximum Entropy Clustering (MEC) is a clustering method that
+maximizes the entropy in cluster assignments, for an average
+variance in the data set.  \\
+\indent Maximum entropy clustering is defined only for the Euclidean
+distance metric and we must assume the number of clusters in the
+data set $K$.  To define the algorithm, we first fix a set of
+cluster centers $\boldsymbol{\mu}_1, \hdots, \boldsymbol{\mu}_K$.
+ Define the \emph{energy} for a cluster $\boldsymbol{\mu}_k$ and
+document $\boldsymbol{y}_i$ as
+\begin{eqnarray}
+\text{E}_j(\boldsymbol{y}_i) & = &
+\mathcal{D}^2_{\text{Euclidean}}(\boldsymbol{y}_i,
+\boldsymbol{\mu}_k) \nonumber
+\end{eqnarray}
+In the first step of the algorithm, we determine the proportion of
+the document that is assigned to each cluster, or compute a $K
+\times 1$ vector $\boldsymbol{c}_i$, which has typical element
+$c_{i,j}$,
+\begin{eqnarray}
+c_{i,j} & = & \frac{\exp\{- \beta \text{E}_j(\boldsymbol{y}_i)
+\}}{\sum_{m=1}^{K} \exp\{ - \beta \text{E}_m(\boldsymbol{y})_i\}}
+\end{eqnarray}
+where $\beta$ is a parameter which controls the \emph{fuzziness} of
+the updates.  As $\beta \rightarrow \infty$, then MEC approaches the
+kmeans algorithm and $\beta \rightarrow 0$, every observation is
+assigned equally to each document. $\beta$ can either be set a priori, or increased slowly during
+estimation in an annealing procedure.   \\
+\indent In the second step of the algorithm, we update the cluster
+centers, based upon the updated values of $\boldsymbol{c}_i$.
+Solving a constrained optimization problem shows that typical
+cluster center $\boldsymbol{\mu}_k$ has update steps
+\begin{eqnarray}
+\boldsymbol{\mu}_k & = & \frac{\sum_{i=1}^{N} \boldsymbol{y}_i
+c_{i,k} }{ \sum_{i=1}^{N} c_{i,k} } \nonumber
+\end{eqnarray}
+or the weighted average of the documents assigned to cluster $k$.
+Table \ref{mec} summarizes the algorithm.
+
+\begin{table}[hbt!]
+\caption{Maximum Entropy Clustering Algorithm} \framebox[7in]{
+\begin{tabular}{l}
+Set number of clusters $K$, initialize $\beta$ and cluster centers
+$\boldsymbol{\mu}_1, \hdots, \boldsymbol{\mu}_K$.  \\
+Do until convergence \\
+- for $i=1, \hdots, N$, $k=1,\hdots, K$ calculate
+$\text{E}_j(\boldsymbol{y}_i)  =
+\mathcal{D}^2_{\text{Euclidean}}(\boldsymbol{y}_i,
+\boldsymbol{\mu}_k) $ \\
+ - for $i=1, \hdots, N$, $k=1,\hdots, K$, calculate $c_{i,k} =
+\frac{\exp\{- \beta \text{E}_j(\boldsymbol{y}_i) \}}{\sum_{m=1}^{K}
+\exp\{ - \beta \text{E}_m(\boldsymbol{y})_i\}}$ \\
+- for $k =1, \hdots, K$ calculate $\boldsymbol{\mu}_k  =
+\frac{\sum_{i=1}^{N} \boldsymbol{y}_i c_{i,k} }{ \sum_{i=1}^{N}
+c_{i,k} }$ \\
+Return $N \times K$ matrix of cluster memberships $\boldsymbol{c}$
+\end{tabular}}
+\end{table}
+
+
+
+\subsection{Distance Cuts}
+\textbf{This function first forms a graph based upon a threshold
+$\beta$.  Then this graph is cut to identify clusters or
+\emph{subgraphs}.  No citation or code given, so you'll need to
+unpack the .C code in the CBA library. }
+
+
+
+\subsection{Hierarchical Methods}
+
+
+\subsubsection{Agglomerative Hierarchical Clustering (AHC)}
+\subsubsection{(AHC): Rock}
+{\tt pg 207} of the Data Clustering, Theory, and Applications book.
+And located here \\ {\tt
+http://www.cis.upenn.edu/~sudipto/mypapers/categorical.pdf}.  You
+need to figure out what a \emph{heap} is.
+\subsubsection{(AHC): Mixture of Normals}
+\subsubsection{Divisive Hierarchical Clustering (DHC)}
+\subsubsection{(DHC): DISMEA}
+This is a divisive clustering method, that successively looks for
+divisions to make in the clusters until we reach the desired number
+of clusters in the data set.  \\
+\indent To start the algorithm, we fix a distance metric
+$\mathcal{D}_m$ and a desired number of clusters $K$.  Recall that
+$d_1 \equiv \{i: c_i = 1\}$.  Then, the first step of the algorithm
+is to look for sets $d_1$ and $d_2$ such that
+\begin{eqnarray}
+\text{F}(d_1, d_2,\boldsymbol{\mu}_1, \boldsymbol{\mu}_2,
+\boldsymbol{Y}) & = & \min_{d_1, d_2} \sum_{i=1}^{2} \sum_{j \in
+d_i} \mathcal{D}_m (\boldsymbol{y}_j, \boldsymbol{\mu}_i) \nonumber
+\end{eqnarray}
+where $\boldsymbol{\mu}_i$ is the cluster center for the
+$i^{\text{th}}$ cluster.  To search for the division, we use the
+kmeans algorithm looking for two clusters.  In subsequent steps, we
+repeat the algorithm, but on the cluster with the \emph{greatest
+dispersion} around the cluster center.  Calculate the dispersion for
+cluster $k$ as
+\begin{eqnarray}
+\text{Dispersion}_k & = & \sum_{j \in d_k}
+\mathcal{D}(\boldsymbol{y}_j, \boldsymbol{\mu}_k). \nonumber
+\end{eqnarray}
+We then proceed to split the cluster $j = {\tt arg max}_k
+\text{Dispersion}_k$.  We repeat the procedure until there are $K$
+clusters remaining.  Table \ref{dismea} summarizes the algorithm.
+\begin{table}[hbt!]
+\caption{DISMEA algorithm} \label{dismea} \framebox[7in]{
+\begin{tabular}{l}
+Fix a distance metric $\mathcal{D}_m$ and number of clusters $K$. \\
+Do until $K$ clusters are obtained \\
+- For each $k=1, \hdots, m$ calculate $\text{Dispersion}_k   =
+\sum_{j \in d_k} \mathcal{D}(\boldsymbol{y}_j, \boldsymbol{\mu}_k)$.
+\\
+- Set $j = {\tt arg max}_k \text{Dispersion}_k$. \\
+- Apply kmeans to $d_j$ with $k=2$.  Call $d_1= d_j$ and $d_2 =
+d_{m+1}$
+\end{tabular}
+}
+\end{table}
+
+\subsection{Fuzzy Clustering}
+\textbf{This is the FANNY function in the \emph{cluster package.}  }
+
+\subsection{Hard Clustering}
+
+\subsection{Markov Clustering Algorithm}
+Check this algorithm out.  Supposedly it is conceptually similar to
+Affinity propagation, but you'll have to check it out. \\
+\textbf{This algorithm is passed on repeated application of matrix
+product and elementwise exponentiating.  The result (if properly
+applied) is a set of star graphs where the nodes at the center of
+the graph are functionally similar to the exemplars in affinity
+propagation.  }
+
+\subsection{Clustering Convex Functions}
+
+\subsection{Quality Threshold Clustering (QTClust)}
+Quality Threshold Clustering (QTCLust) is a clustering method that
+relies upon identifying groups of observations that lie within a
+threshold $d$, rather than explicitly identifying cluster centers.
+\\
+\indent To outline the algorithm, we first fix a distance metric
+$\mathcal{D}_m$ and a desired number of clusters $K$.  Then, for
+each document $i$ we determine the number of documents that are
+within $d$ the \emph{threshold} and group all such documents into
+the set $A_i$. Then we choose
+
+
+\subsection{Neural Gas}
+
+\subsection{Self-Organizing Map}
+\subsection{Self-Organizing Tree}
+
+\subsection{Spectral Clustering}
+Spectral clustering is an approach to clustering that involves
+working with the \emph{spectrum}--the eigenvalues and
+eigenvectors--of similarity matrices.  By working on the spectrum,
+spectral methods may be effective at changing the representation of
+documents--allowing the identification of clusters that would be
+otherwise impossible to identify using standard methods.\\
+\indent A variety of spectral methods have been proposed, but all
+have some similar basic elements.  First, they are based upon a
+similarity matrix $\boldsymbol{S}$, which is set \emph{a priori}
+from the list above.  Second, a \emph{graph laplacian},
+$\boldsymbol{L}$ is constructed, which is a reweighted similarity
+matrix (described below).  Using these objects, we can define three
+different spectral clustering algorithms.\\
+\indent To define the algorithms, we will need to order the
+eigenvectors and eigenvalues.  Throughout, we will organize the
+vectors by their size of their associated eigenvalues.  The
+eigenvector associated with the largest eigenvalues will be the
+\emph{first} eigenvector, the eigenvector with the second largest
+eigenvalue will the \emph{second} eigenvector and so on.\\
+\indent \textbf{You can expand this, or at least make more clear}.
+You can justify the use of spectral clustering in three ways.  (1)
+You can use a graph-cut justification, where you try to cut the
+edges to create clusters that have the lowest similarity. (2) You
+can use a random-walk justification, where we want to segment the
+sections where the random-walk is likely to spend the most time. (3)
+Use a perturbation argument.  You can show that in the ideal case,
+the spectral clustering algorithm is likely to identify the correct
+solution.  Then, as you perturb the ideal solution, the spectral
+method is likely to find the correct solution.  Note, that in all
+three cases, using the eigenvalues \emph{relaxes} the optimization
+problem, making it simpler than the true problem.  In some
+degenerate graphs, this can lead to some problems.
+\subsubsection{Unnormalized Spectral Clustering}
+\textbf{add this method to the package} To construct this
+clustering, we first need to define the \emph{degree} of each
+observation.  For each observation $i=1,\hdots, N$ define $d_i =
+\sum_{j=1}^{N} s_{i,j}$.  Define $\boldsymbol{D}$ as the $N \times
+N$ diagonal matrix with the degrees down the diagonal,
+\begin{equation}
+\boldsymbol{D} = \begin{pmatrix}
+d_1 & 0 & \hdots & 0 \\
+0   & d_2 & \hdots & 0 \\
+\vdots   &  \vdots  & \ddots & \vdots \\
+0       &     0     &   \hdots & d_N \\
+\end{pmatrix} \nonumber
+\end{equation}
+Then, define $\boldsymbol{L} = \boldsymbol{D} - \boldsymbol{S}$.  If
+we want to compute $K$ clusters, then we obtain the first $K$
+eigenvectors associated with $\boldsymbol{L}$ and place them as the
+columns in the $N \times K$ matrix $\boldsymbol{U}$.  Call the rows
+of $\boldsymbol{U}$, $u_1, \hdots, u_N$ and use the kmeans
+algorithm, with the euclidean metric assumed, to cluster the rows of
+$\boldsymbol{U}$.  We then say that $c_i = k $ if and only if $u_i$
+is assigned to the $k^{\text{th}}$ cluster.  Table \ref{unnormspec}
+summarizes the algorithm.
+\begin{table}[hbt!]
+\caption{Unnormalized Spectral Clustering} \label{unnormspec}
+\framebox[7in]{
+\begin{tabular}{l}
+Fix a similarity matrix $\boldsymbol{S}$ and number of clusters $K$. \\
+- Calculate $\boldsymbol{D}$ and $\boldsymbol{L} = \boldsymbol{D}-
+\boldsymbol{S}$.  \\
+- Compute first $K$ eigenvectors of $\boldsymbol{L}$ and place as
+columns in $N \times K$ matrix $\boldsymbol{U}$.  \\
+- Call rows of $\boldsymbol{U}$ $u_1, \hdots, u_N$.  \\
+- Cluster rows of $\boldsymbol{U}$ using kmeans and euclidean
+distance.  \\
+- Assign $c_i = k $ if and only if $u_i$ is assigned to
+$k^{\text{th}}$ cluster.  \\
+Return $\boldsymbol{c}$.
+\end{tabular}}
+\end{table}
+\subsubsection{Meila and Shi (2002) Spectral Clustering }
+This algorithm has the same basic steps as unnormalized spectral
+clustering, but computes the spectrum of a different laplacian
+matrix $\boldsymbol{L}$.  Once again, we fix a similarity matrix
+$\boldsymbol{S}$ and compute the degree matrix $\boldsymbol{D}$.
+ Define
+\begin{eqnarray}
+\boldsymbol{D}^{-1} & = & \begin{pmatrix}\frac{1}{d_1} & 0 & \hdots
+& 0 \\
+0 & \frac{1}{d_2}& \hdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \hdots & \frac{1}{d_N}
+\end{pmatrix} \nonumber
+\end{eqnarray}
+
+We can define the new graph Laplacian, $\boldsymbol{L}^{'}$, as
+\begin{eqnarray}
+\boldsymbol{L}^{'} & = & \boldsymbol{D}^{-1} (\boldsymbol{D} -
+\boldsymbol{S}) \nonumber \\
+& = & \boldsymbol{I} - \boldsymbol{D}^{-1}\boldsymbol{S}, \nonumber
+\end{eqnarray}
+where $\boldsymbol{I}$ is the $N \times N$ identity matrix.  We then
+compute the first $K$ eigenvectors of $\boldsymbol{L}^{'}$, place
+those vectors in the $N \times K$ matrix $\boldsymbol{U}$, and then
+cluster the rows $\boldsymbol{u}_1, \hdots, \boldsymbol{u}_N$ using
+a kmeans algorithm with euclidean distance.  We then cluster the
+documents based upon the clustering of the rows of the
+$\boldsymbol{U}$ matrix.  Table \ref{MeilaShi} describes the
+algorithm.
+
+\begin{table}[hbt!] \caption{Meila and Shi (2001) Spectral
+Clustering} \label{MeilaShi} \framebox[7in]{
+\begin{tabular}{l}
+Fix a similarity matrix $\boldsymbol{S}$ and number of clusters $K$.
+\\
+- Calculate $\boldsymbol{D}$. \\
+- Compute $\boldsymbol{L}^{'} = \boldsymbol{I} - \boldsymbol{D}^{-1}
+\boldsymbol{S}$ \\
+- Calculate the first $K$ eigenvectors of $\boldsymbol{L}^{'}$ and
+place as columns in $N \times K$ matrix $\boldsymbol{U}$.\\
+- Cluster rows of $\boldsymbol{U}$ using kmeans with euclidean
+distance.  \\
+- Assign $c_i = k $ if and only if $u_i$ is assigned to
+$k^{\text{th}}$ cluster.  \\
+Return $\boldsymbol{c}$.
+\end{tabular}}
+\end{table}
+
+
+\subsubsection{Ng, Jordan, Weiss (2003) Spectral Clustering}
+Once again, this algorithm follows the same basic structure as the
+previous two--with a slightly different graph Laplacian used, and an
+additional normalization step. \\
+\indent Once again, we fix a similarity matrix $\boldsymbol{S}$ and
+a desired number of clusters $K$.  Define $\boldsymbol{D}^{-1/2}$
+as,
+\begin{eqnarray}
+\boldsymbol{D}^{-1/2} & = & \begin{pmatrix}\frac{1}{\sqrt{d_1}} & 0
+& \hdots
+& 0 \\
+0 & \frac{1}{\sqrt{d_2}}& \hdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \hdots & \frac{1}{\sqrt{d_N}}
+\end{pmatrix} \nonumber
+\end{eqnarray}
+
+We then compute a different version of the Graph Laplacian
+$\boldsymbol{L}^{''}$ as,
+\begin{eqnarray}
+\boldsymbol{L}^{''} & = & \boldsymbol{D}^{-1/2} \boldsymbol{S}
+\boldsymbol{D}^{-1/2} \nonumber \\
+& = & \boldsymbol{I} - \boldsymbol{D}^{-1/2} \boldsymbol{S}
+\boldsymbol{D}^{-1/2} \nonumber
+\end{eqnarray}
+
+Now, we compute the first $K$ eigenvectors of $\boldsymbol{L}^{''}$
+and place the vectors in the $N \times K$ matrix $\boldsymbol{U}$.
+Next, we form the normalized matrix $\boldsymbol{U}^{\text{norm}}$
+by normalizing the rows $\boldsymbol{U}$.  That is row
+$\boldsymbol{u}^{\text{norm}}_{i}$ is equal to,
+\begin{eqnarray}
+\boldsymbol{u}^{\text{norm}}_{i} & = & \frac{\boldsymbol{u}_i
+}{\sqrt{\boldsymbol{u}_i^{'} \boldsymbol{u}^{'} }} \nonumber
+\end{eqnarray}
+Now, we cluster the rows of $\boldsymbol{U}^{\text{norm}}$ using a
+kmeans algorithm with Euclidean distance metric and assign the
+document clusters based upon the clusters found in the rows of
+$\boldsymbol{U}^{\text{norm}}$.  Table \ref{NgJordanWeiss}
+summarizes the algorithm.
+\begin{table}[hbt!]
+\caption{Ng, Jordan, and Weiss (2003) Spectral Clustering}
+\label{NgJordanWeiss} \framebox[7in]{
+\begin{tabular}{l}
+Fix a similarity matrix $\boldsymbol{S}$ and desired number of
+clusters $K$.  \\
+- compute $\boldsymbol{L}^{''} = \boldsymbol{I} -
+\boldsymbol{D}^{-1/2} \boldsymbol{S} \boldsymbol{D}^{-1/2}$ \\
+- compute the first $K$ eigenvectors of $\boldsymbol{L}^{''}$ and
+place them as the columns in $\boldsymbol{U}$.  \\
+- compute $\boldsymbol{U}^{\text{norm}}$ by normalizing each row of
+$\boldsymbol{U}$, $\boldsymbol{u}^{\text{norm}}_i =
+\frac{\boldsymbol{u}_i }{\sqrt{\boldsymbol{u}_i^{'}
+\boldsymbol{u}^{'} }}$.  \\
+- Cluster rows of $\boldsymbol{U}^{\text{norm}}$ using kmeans with
+Euclidean
+distance.  \\
+- Assign $c_i = k $ if and only if $u_i^{\text{norm}}$ is assigned
+to $k^{\text{th}}$ cluster.  \\
+Return $\boldsymbol{c}$.
+\end{tabular}}
+\end{table}
+
+\subsubsection{Shi and Malik (2000) Spectral Clustering}
+\textbf{expand this when you work on it again}Rather than just work
+directly on a Laplacian, this algorithm segments the data based upon
+the size of the second eigenvector of the graph Laplacian,
+iteratively dividing the data into $K$ clusters.  To begin, we fix a
+similarity matrix $\boldsymbol{S}$ and fix the number of clusters
+$K$.  Then, we compute $\boldsymbol{L}^{'}$ and compute the
+eigenvalues and eigenvectors. We take the second eigenvector, and
+rank the data based upon the value of the second eigenvector. We
+then go through and find the partition of the observations $i=
+1,\hdots, N-1$ that minimizes the $NCUT$ between the two clusters,
+which for set $A$ and $B$ is defined as,
+\begin{eqnarray}
+NCUT(A, B) & = & Cut(A, B) \left(\frac{1}{\text{vol} A } +
+\frac{1}{\text{vol} B} \right) \nonumber
+\end{eqnarray}
+where $Cut(A,B) = sum_{i \in A}\sum_{j \in B} s_{i,j}$, vol$A =
+\sum_{i \in A} d_i$ and vol $B = \sum_{j \in B} d_j$.  We then
+repeat for the cluster with the largest second eigenvalue until we
+have $K$ clusters.
+
+\subsection{Statistical Models}
+
+\subsubsection{Dirichlet Process prior, Multinomial Components}
+\subsubsection{Mixture of Multinomial Distributions, EM}
+\subsubsection{Mixture of Multinomial Distributions, Variational Estimation}
+\subsubsection{Mixture of von-Mises Fisher, EM}
+\subsubsection{Mixture of von-Mises Fisher, Variational Estimation}
+\subsubsection{Mixture of Normals}
+\subsubsection{Mixture of Normals, Variational Estimation}
+
+\subsection{Coclustering}
+
+
+\subsubsection{Coclustering with Mutual Information}
+\subsubsection{Coclustering with Spectral Methods (SVD)}
+
+
+\end{document}

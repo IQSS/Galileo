@@ -1,0 +1,12 @@
+Package: Galileo
+Version: 0.086753090
+Date: 2010-03-03
+Title: Galileo: General Purpose Cluster Analysis Method
+Author: Justin Grimmer <jgrimmer@fas.harvard.edu>
+	Gary King <king@harvard.edu>
+Maintainer: Justin Grimmer <jgrimmer@fas.harvard.edu>
+Depends: R (>= 2.6.0)
+Description: 
+License: Creative Commons Attribution-Noncommercial-No Derivative Works 3.0, for academic use only
+URL: http://gking.harvard.edu/galileo
+Packaged: 2010-03-04 03:00:53 UTC; rbuild2

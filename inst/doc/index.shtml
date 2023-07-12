@@ -1,0 +1,54 @@
+\<html>
+<head>
+<title>Galileo Software Website</title>
+<script language='Javascript' src='/gking.js'></script></HEAD>
+
+<BODY><script language="Javascript">displayHeader()</script>
+
+<h1>Galileo: Software for Cluster Analysis</h1>
+
+<a href="http://www.people.fas.harvard.edu/~jgrimmer/">Justin Grimmer</a>
+<a href="/">Gary King</a>, 
+<br /><br />
+<!-- rbuild: replace 'Version:' '</b>' version -->
+<b>Version:0.086753090</b>
+
+<table border='0' cellpadding='0' cellspacing='8'><tr><td valign='top'
+width='260'> <p !style="float:left; width: 200; margin: 1.5em;"> <img
+src="/galileo/galileo.jpg" width="250"  /></a> <br /><small>
+</small></p>
+
+</td><td valign='top'>
+
+<p>Galileo is unfinished, in progress.  It is a program that
+implements clustering algorithms we're working on...
+  </p>
+  
+<ul> 
+    
+<li>To install, sign on to R, and type:
+    install.packages("Galileo",repos="http://gking.harvard.edu")</li>
+
+<li>For documentation, from R, type library(Galileo), and then ?galileo,
+    or download <a href="docs/galileo.pdf">PDF</a>  (or try the translated <a
+    href="http://gking.harvard.edu/galileo/docs/galileo.html">html
+    version</a>)
+
+<!-- <li>All questions, bugs and requests: Mailing List, <a
+href="http://lists.hmdc.harvard.edu/index.cgi?info=galileo"
+target="gkingext">[Un]Subscribe</a>, or <a
+href="http://lists.hmdc.harvard.edu/lists/galileo/"
+target="gkingext">Browse/Search Archives</a></li>  -->
+
+<li><a href="/galileo/" target="ChangeDetectionWiz"
+    onClick="doChangeDetectionPopup()"> Track Galileo changes</a></li>
+</ul>
+
+</td>
+</tr>
+</table>    
+    
+   
+
+<script language="Javascript">displayFooter()</script></BODY>
+</html>

@@ -1,0 +1,8 @@
+affinity 			compute the affinity between documents
+mutinf				compute the mutual information for each
+				word in each cluster
+galileo				compute topic-clusters using a flexible
+				set of clustering methods
+clustTable			provides a LaTeX ready table for a 
+				galileo object
+
